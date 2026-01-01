@@ -20,12 +20,12 @@ namespace MyWebApiProject.Controllers
         [HttpPut]
         public async Task<IActionResult> Put([FromBody] User user)
         {
-           bool? u = await _service.Update(user);
-            if (u == null)
-                return BadRequest();
-            if (u==true)
-                return NoContent();
-            return NotFound();
+           bool? success = await _service.Update(user);
+            if (success == null)
+                return BadRequest("Invalid user data");
+            if (success==true)
+                return Ok("User updated successfully");
+            return NotFound("User not found");
         }
     }
 }

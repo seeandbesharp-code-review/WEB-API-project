@@ -23,13 +23,12 @@ namespace MyWebApiProject.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] SignIn user1)
+        public async Task<IActionResult> Post([FromBody] SignIn signInRequest)
         {
-            User? u = new();
-             u =  await _service.SignIn(user1);
-            if (u == null)
-                return BadRequest();
-            return Ok(u);
+            User? authenticatedUser = await _service.SignIn(signInRequest);
+            if (authenticatedUser == null)
+                return Unauthorized("Invalid credentials");
+            return Ok(authenticatedUser);
             
         }
     }

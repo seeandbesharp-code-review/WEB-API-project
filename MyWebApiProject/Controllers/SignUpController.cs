@@ -24,10 +24,10 @@ namespace MyProject.Controllers
         public async Task<IActionResult> Post([FromBody] User user)
         {
 
-            User? u  = await  _service.SignUp(user);
-            if (u == null)
-                return BadRequest();
-            return CreatedAtAction(nameof(Post), new { id = u?.UserId }, u);
+            User? createdUser  = await  _service.SignUp(user);
+            if (createdUser == null)
+                return BadRequest("Registration failed - invalid data or weak password");
+            return CreatedAtAction(nameof(Post), new { id = createdUser?.UserId }, createdUser);
 
         }
     }
