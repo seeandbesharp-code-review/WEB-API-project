@@ -7,7 +7,7 @@ namespace MyWebApiProject.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class StrongPasswordController : Controller
+    public class StrongPasswordController : ControllerBase
     {
         private readonly ISignUpService _service;
 
@@ -16,10 +16,10 @@ namespace MyWebApiProject.Controllers
             _service = service;
         }
         [HttpPost]
-        public int StrongPassword([FromBody] User user)
+        public async Task<ActionResult<int>> StrongPassword([FromBody] User user)
         {
 
-            return _service.StrongPassword(user);
+            return Ok(await _service.StrongPassword(user));
         }
     }
 }
