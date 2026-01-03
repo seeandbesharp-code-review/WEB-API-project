@@ -25,11 +25,11 @@ namespace Services
             string? description, int? maxPrice, int? minPrice)
         {
 
-            (List<Product>, int) response = await _productRepository.GetProducts(position,skip,categoryIds,description,maxPrice,minPrice);
-            List<ProductDTO> data = _mapper.Map<List<Product>, List<ProductDTO>>(response.Item1);
+            var (items, totalItems) = await _productRepository.GetProducts(position,skip,categoryIds,description,maxPrice,minPrice);
+            List<ProductDTO> data = _mapper.Map<List<Product>, List<ProductDTO>>(items);
             PageResponseDTO<ProductDTO> pageResponse = new();
             pageResponse.Data = data;
-            pageResponse.TotalItems = response.Item2;
+            pageResponse.TotalItems = totalItems;
             pageResponse.CurrentPage = position;
             pageResponse.PageSize = skip;
             pageResponse.HasPreviousPage = position > 1;

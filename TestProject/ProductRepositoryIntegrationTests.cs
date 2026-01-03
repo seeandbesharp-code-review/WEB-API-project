@@ -27,41 +27,90 @@ namespace TestProject
         }
 
         [Fact]
-        public async Task GetProducts_WhenProductsExist_ReturnsAllProductsWithCategory()
+        public async Task GetProducts_WithComplexFilters_ReturnsExpectedResult()
         {
             // Arrange
-            var category = new Category { Name = "Electronics" };
+            var category = new Category { Name = "Tech" };
             await _dbContext.Categories.AddAsync(category);
-            await _dbContext.SaveChangesAsync();
 
-            var testProducts = new List<Product>
-            {
-                new Product { ProductName = "Laptop", CategoryId = category.Id, Price = 3500 },
-                new Product { ProductName = "Mouse", CategoryId = category.Id, Price = 150 }
-            };
+            var p1 = new Product { Name = "A", Description = "Good", Price = 100, Category = category };
+            var p2 = new Product { Name = "B", Description = "Bad", Price = 200, Category = category };
+            var p3 = new Product { Name = "C", Description = "Good", Price = 300, Category = category };
 
-            await _dbContext.Products.AddRangeAsync(testProducts);
+            await _dbContext.Products.AddRangeAsync(p1, p2, p3);
             await _dbContext.SaveChangesAsync();
 
             // Act
-            var result = await _productRepository.GetProducts();
+            var (items, totalCount) = await _productRepository.GetProducts(1, 10, new int?[] { category.Id }, "Good", 250, 0);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Count());
-            Assert.All(result, p => Assert.NotNull(p.Category));
-            Assert.Contains(result, p => p.ProductName == "Laptop" && p.Category.Name == "Electronics");
+            Assert.Single(items);
+            Assert.Equal("A", items.First().Name);
+            Assert.Equal(1, totalCount);
         }
-
         [Fact]
-        public async Task GetProducts_WhenNoProductsExist_ReturnsEmptyList()
+        public async Task GetProducts_Pagination_ReturnsCorrectSliceOfData()
         {
+            // Arrange
+            var category = new Category { Name = "Hardware" };
+            await _dbContext.Categories.AddAsync(category);
+
+            var products = new List<Product>
+            {
+                new Product { Name = "Item 1", Price = 10, Category = category, Description = "D" },
+                new Product { Name = "Item 2", Price = 20, Category = category, Description = "D" },
+                new Product { Name = "Item 3", Price = 30, Category = category, Description = "D" },
+                new Product { Name = "Item 4", Price = 40, Category = category, Description = "D" },
+                new Product { Name = "Item 5", Price = 50, Category = category, Description = "D" }
+            };
+            await _dbContext.Products.AddRangeAsync(products);
+            await _dbContext.SaveChangesAsync();
+
             // Act
-            var result = await _productRepository.GetProducts();
+            var (items, totalCount) = await _productRepository.GetProducts(
+                position: 2,
+                skip: 2,
+                categoryIds: new int?[] { category.Id },
+                description: null,
+                maxPrice: null,
+                minPrice: null
+            );
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Empty(result);
+            Assert.Equal(2, items.Count);
+            Assert.Equal(5, totalCount); 
+            Assert.Equal(30, items[0].Price);
+            Assert.Equal(40, items[1].Price);
+        }
+        [Fact]
+        public async Task GetProducts_WhenFiltersMatchNoData_ReturnsEmptyList()
+        {
+            // Arrange
+            var category = new Category { Name = "Tech" };
+            await _dbContext.Categories.AddAsync(category);
+            await _dbContext.Products.AddAsync(new Product
+            {
+                Name = "Cheap Phone",
+                Price = 100,
+                Category = category,
+                Description = "Old"
+            });
+            await _dbContext.SaveChangesAsync();
+
+            // Act
+            var (items, totalCount) = await _productRepository.GetProducts(
+                position: 1,
+                skip: 10,
+                categoryIds: new int?[] { category.Id },
+                description: null,
+                maxPrice: null,
+                minPrice: 1000
+            );
+
+            // Assert
+            Assert.NotNull(items);
+            Assert.Empty(items);
+            Assert.Equal(0, totalCount);
         }
     }
 }

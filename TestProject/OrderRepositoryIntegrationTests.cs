@@ -37,7 +37,7 @@ namespace TestProject
             await _dbContext.Categories.AddAsync(category);
             await _dbContext.SaveChangesAsync();
 
-            var product = new Product { ProductName = "Test Product", CategoryId = category.Id, Price = 10.0 };
+            var product = new Product { Name = "Test Product", CategoryId = category.Id, Price = 10.0 };
             await _dbContext.Products.AddAsync(product);
             await _dbContext.SaveChangesAsync();
 
@@ -70,7 +70,7 @@ namespace TestProject
             await _dbContext.Categories.AddAsync(category);
             await _dbContext.SaveChangesAsync();
 
-            var product = new Product { ProductName = "Gadget", CategoryId = category.Id, Price = 100.0 };
+            var product = new Product { Name = "Gadget", CategoryId = category.Id, Price = 100.0 };
             await _dbContext.Products.AddAsync(product);
             await _dbContext.SaveChangesAsync();
 

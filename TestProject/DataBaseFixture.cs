@@ -12,19 +12,21 @@ namespace TestProject
     public class DatabaseFixture : IDisposable
     {
         public ApiDBContext Context { get; private set; }
+        private readonly string _dbName;
         public DatabaseFixture()
         {
-            // Set up the test database connection and initialize the context
-            var options = new DbContextOptionsBuilder<ApiDBContext>()
+            _dbName = $"ApiDB_test_{Guid.NewGuid()}";
+            var connectionString = $"Data Source=ATARA; Initial Catalog={_dbName}; Integrated Security=True; Trust Server Certificate=True";
 
-                .UseSqlServer("Data Source = ATARA; Initial Catalog = ApiDB_test; Integrated Security = True; Trust Server Certificate=True")
+            var options = new DbContextOptionsBuilder<ApiDBContext>()
+                .UseSqlServer(connectionString)
                 .Options;
+
             Context = new ApiDBContext(options);
             Context.Database.EnsureCreated();
         }
         public void Dispose()
         {
-            // Clean up the test database after all tests are completed
             Context.Database.EnsureDeleted();
             Context.Dispose();
         }

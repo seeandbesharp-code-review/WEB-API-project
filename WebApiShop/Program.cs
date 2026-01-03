@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Repositories;
 using Services;
 using NLog.Web;
+using WebApiShop;
+using WebApiShop.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -15,7 +17,9 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-builder.Services.AddScoped<IOrderService, OrderService>(); 
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IRatingService, RatingService>();
+builder.Services.AddScoped<IRatingRepository, RatingRepository>();
 builder.Services.AddDbContext<ApiDBContext>
     (options => options.UseSqlServer(builder.Configuration.GetConnectionString("Home")));
 // Add services to the container.
@@ -34,6 +38,10 @@ if (app.Environment.IsDevelopment())
 // Configure the HTTP request pipeline.
 
 app.UseHttpsRedirection();
+
+app.UseErrorHandling();
+
+app.UseRating();
 
 app.UseStaticFiles();
 

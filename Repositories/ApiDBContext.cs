@@ -24,6 +24,7 @@ public partial class ApiDBContext : DbContext
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<Rating> Ratings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -73,7 +74,7 @@ public partial class ApiDBContext : DbContext
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.ImageUrl).HasColumnName("image_url");
             entity.Property(e => e.Price).HasColumnName("price");
-            entity.Property(e => e.ProductName).HasColumnName("product_name");
+            entity.Property(e => e.Name).HasColumnName("product_name");
 
             entity.HasOne(d => d.Category).WithMany(p => p.Products)
                 .HasForeignKey(d => d.CategoryId)
@@ -97,6 +98,35 @@ public partial class ApiDBContext : DbContext
                 .IsRequired()
                 .IsUnicode(false)
                 .HasColumnName("password");
+        });
+        modelBuilder.Entity<Rating>(entity =>
+        {
+            entity.ToTable("RATING");
+
+            entity.Property(e => e.RatingId).HasColumnName("RATING_ID");
+
+            entity.Property(e => e.Host)
+                .HasColumnName("HOST")
+                .HasMaxLength(50);
+
+            entity.Property(e => e.Method)
+                .HasColumnName("METHOD")
+                .HasMaxLength(10)
+                .IsFixedLength();
+
+            entity.Property(e => e.Path)
+                .HasColumnName("PATH")
+                .HasMaxLength(50);
+
+            entity.Property(e => e.RecordDate)
+             .HasColumnName("Record_Date")
+             .HasColumnType("datetime");
+
+            entity.Property(e => e.Referer)
+                .HasColumnName("REFERER")
+                .HasMaxLength(100);
+
+            entity.Property(e => e.UserAgent).HasColumnName("USER_AGENT");
         });
 
         OnModelCreatingPartial(modelBuilder);

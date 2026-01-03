@@ -12,7 +12,14 @@ namespace DTOs
 
      int ProductId ,
 
-     int Quantity
+     int Quantity,
+
+     string ProductName,
+
+     string ProductImageUrl,
+
+     double ProductPrice
+
     );
    
 }
