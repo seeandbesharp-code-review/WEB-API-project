@@ -9,7 +9,11 @@
 
      string LastName ,
 
-     string Password,
+     string Address ,
+
+     string PhoneNumber ,
+
+     bool IsAdmin,
 
      ICollection<OrderDTO> Orders 
     );

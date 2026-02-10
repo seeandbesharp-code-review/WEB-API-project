@@ -1,4 +1,5 @@
 ﻿using DTOs;
+using Entities;
 using Microsoft.AspNetCore.Mvc;
 using Services;
 
@@ -38,16 +39,16 @@ namespace WebApiShop.Controllers
 
         // POST api/<UsersController>
         [HttpPost]
-        public async Task<ActionResult<PostUserDTO>> Post([FromBody] PostUserDTO newUser)
+        public async Task<ActionResult<UserDTO>> Post([FromBody] PostUserDTO newUser)
         {
             if (!await _userService.UserWithSameEmail(newUser.Email))
                 return BadRequest("The email already exists. Please try again.");
             if (!_userService.IsPasswordStrong(newUser.Password))
                 return BadRequest("The password is too weak. Please try again.");
-            newUser = await _userService.AddUser(newUser);
-            if (newUser == null)
+            UserDTO returnedUser = await _userService.AddUser(newUser);
+            if (returnedUser == null)
                 return BadRequest();
-            return CreatedAtAction(nameof(Get), new { id = newUser.Id }, newUser);
+            return CreatedAtAction(nameof(Get), new { id = returnedUser.Id }, returnedUser);
         }
 
         [HttpPost("login")]
@@ -70,5 +71,15 @@ namespace WebApiShop.Controllers
             await _userService.UpdateUser(id, updateUser);
             return NoContent();
        }
+
+        [HttpGet("{id}/orders")]
+        public async Task<ActionResult<IEnumerable<OrderDTO>>> GetUsersOrders(int id)
+        {
+            IEnumerable<OrderDTO> orders = await _userService.GetUsersOrders(id);
+            if (orders.Count() > 0)
+                return Ok(orders);
+            return NoContent();
+
+        }
     }
 }

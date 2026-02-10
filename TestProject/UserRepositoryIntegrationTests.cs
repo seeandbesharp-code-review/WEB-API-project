@@ -160,5 +160,65 @@ namespace TestProject
             Assert.NotNull(userInDb);
             Assert.Equal("new@test.com", userInDb.Email);
         }
+        [Fact]
+        public async Task GetUsersOrders_ReturnsOrdersWithItemsAndProducts_FromDatabase()
+        {
+            // 1. Arrange
+            var user = new User { FirstName = "Bob", Email = "bob@test.com", Password = "password" };
+            await _dbContext.Users.AddAsync(user);
+            await _dbContext.SaveChangesAsync();
+
+            var product = new Product { Name = "Mechanical Keyboard", Price = 150 };
+            await _dbContext.Products.AddAsync(product);
+            await _dbContext.SaveChangesAsync();
+
+            var order = new Order { UserId = user.Id, OrderDate = DateOnly.FromDateTime(DateTime.Now), OrderSum = 150 };
+            await _dbContext.Orders.AddAsync(order);
+            await _dbContext.SaveChangesAsync();
+
+            var orderItem = new OrderItem { OrderId = order.Id, ProductId = product.Id, Quantity = 1 };
+            await _dbContext.OrderItems.AddAsync(orderItem);
+            await _dbContext.SaveChangesAsync();
+
+            // 2. Act 
+            var result = await _userRepository.GetUsersOrders(user.Id);
+
+            // 3. Assert
+            Assert.NotEmpty(result);
+            var firstOrder = result.First();
+
+            
+            Assert.NotEmpty(firstOrder.OrderItems);
+            var firstItem = firstOrder.OrderItems.First();
+            Assert.NotNull(firstItem.Product);
+            Assert.Equal("Mechanical Keyboard", firstItem.Product.Name);
+        }
+        [Fact]
+        public async Task GetUsersOrders_ReturnsOnlyOrdersBelongingToSpecificUser()
+        {
+            // Arrange
+            var user1 = new User { FirstName = "User1", Email = "u1@test.com", Password = "123" };
+            var user2 = new User { FirstName = "User2", Email = "u2@test.com", Password = "123" };
+            await _dbContext.Users.AddRangeAsync(user1, user2);
+            await _dbContext.SaveChangesAsync();
+
+            var orderUser1 = new Order { UserId = user1.Id, OrderDate = DateOnly.FromDateTime(DateTime.Now), OrderSum = 100 };
+            var orderUser2 = new Order { UserId = user2.Id, OrderDate = DateOnly.FromDateTime(DateTime.Now), OrderSum = 200 };
+
+            await _dbContext.Orders.AddRangeAsync(orderUser1, orderUser2);
+            await _dbContext.SaveChangesAsync();
+
+            // Act
+            var result = await _userRepository.GetUsersOrders(user1.Id);
+
+            // Assert
+            Assert.Single(result);
+
+            var fetchedOrder = result.First();
+            Assert.Equal(user1.Id, fetchedOrder.UserId);
+            Assert.Equal(100, fetchedOrder.OrderSum);
+
+            Assert.DoesNotContain(result, o => o.UserId == user2.Id);
+        }
     }
 }

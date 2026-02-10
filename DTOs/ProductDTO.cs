@@ -11,7 +11,7 @@ namespace DTOs
 
      int CategoryId ,
 
-     string ProductName ,
+     string Name ,
 
      string Description ,
 

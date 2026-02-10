@@ -9,11 +9,15 @@ namespace Repositories;
 
 public partial class ApiDBContext : DbContext
 {
-    protected ApiDBContext() { }
     public ApiDBContext(DbContextOptions<ApiDBContext> options)
         : base(options)
     {
     }
+    public ApiDBContext()
+    {
+    }
+
+
 
     public virtual DbSet<Category> Categories { get; set; }
 
@@ -23,8 +27,9 @@ public partial class ApiDBContext : DbContext
 
     public virtual DbSet<Product> Products { get; set; }
 
-    public virtual DbSet<User> Users { get; set; }
     public virtual DbSet<Rating> Ratings { get; set; }
+
+    public virtual DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,6 +41,8 @@ public partial class ApiDBContext : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
+            entity.HasIndex(e => e.UserId, "IX_Orders_user_id");
+
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.OrderDate).HasColumnName("order_date");
             entity.Property(e => e.OrderSum).HasColumnName("order_sum");
@@ -49,11 +56,13 @@ public partial class ApiDBContext : DbContext
 
         modelBuilder.Entity<OrderItem>(entity =>
         {
+            entity.HasIndex(e => e.OrderId, "IX_OrderItems_order_id");
+
+            entity.HasIndex(e => e.ProductId, "IX_OrderItems_product_id");
+
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.OrderId).HasColumnName("order_id");
-            entity.Property(e => e.ProductId)
-                .HasAnnotation("Relational:DefaultConstraintName", "DF_OrderItems_Prodact_id")
-                .HasColumnName("product_id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.Quantity).HasColumnName("quantity");
 
             entity.HasOne(d => d.Order).WithMany(p => p.OrderItems)
@@ -69,21 +78,53 @@ public partial class ApiDBContext : DbContext
 
         modelBuilder.Entity<Product>(entity =>
         {
+            entity.HasIndex(e => e.CategoryId, "IX_Products_category_id");
+
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CategoryId).HasColumnName("category_id");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.ImageUrl).HasColumnName("image_url");
+            entity.Property(e => e.IsAvailable).HasColumnName("is_available");
             entity.Property(e => e.Price).HasColumnName("price");
-            entity.Property(e => e.Name).HasColumnName("product_name");
+            entity.Property(e => e.Name).HasColumnName("name");
 
             entity.HasOne(d => d.Category).WithMany(p => p.Products)
                 .HasForeignKey(d => d.CategoryId)
                 .HasConstraintName("FK_Products_Categories");
         });
 
+        modelBuilder.Entity<Rating>(entity =>
+        {
+            entity.HasKey(e => e.RatingId).HasName("PK_RATING");
+
+            entity.ToTable("Rating");
+
+            entity.Property(e => e.RatingId).HasColumnName("rating_id");
+            entity.Property(e => e.Host)
+                .HasMaxLength(50)
+                .HasColumnName("host");
+            entity.Property(e => e.Method)
+                .HasMaxLength(10)
+                .IsFixedLength()
+                .HasColumnName("method");
+            entity.Property(e => e.Path)
+                .HasMaxLength(50)
+                .HasColumnName("path");
+            entity.Property(e => e.RecordDate)
+                .HasColumnType("datetime")
+                .HasColumnName("record_date");
+            entity.Property(e => e.Referer)
+                .HasMaxLength(100)
+                .HasColumnName("referer");
+            entity.Property(e => e.UserAgent).HasColumnName("user_agent");
+        });
+
         modelBuilder.Entity<User>(entity =>
         {
             entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Address)
+                .IsUnicode(false)
+                .HasColumnName("address");
             entity.Property(e => e.Email)
                 .IsRequired()
                 .IsUnicode(false)
@@ -91,6 +132,7 @@ public partial class ApiDBContext : DbContext
             entity.Property(e => e.FirstName)
                 .IsUnicode(false)
                 .HasColumnName("first_name");
+            entity.Property(e => e.IsAdmin).HasColumnName("is_admin");
             entity.Property(e => e.LastName)
                 .IsUnicode(false)
                 .HasColumnName("last_name");
@@ -98,35 +140,10 @@ public partial class ApiDBContext : DbContext
                 .IsRequired()
                 .IsUnicode(false)
                 .HasColumnName("password");
-        });
-        modelBuilder.Entity<Rating>(entity =>
-        {
-            entity.ToTable("RATING");
-
-            entity.Property(e => e.RatingId).HasColumnName("RATING_ID");
-
-            entity.Property(e => e.Host)
-                .HasColumnName("HOST")
-                .HasMaxLength(50);
-
-            entity.Property(e => e.Method)
-                .HasColumnName("METHOD")
-                .HasMaxLength(10)
-                .IsFixedLength();
-
-            entity.Property(e => e.Path)
-                .HasColumnName("PATH")
-                .HasMaxLength(50);
-
-            entity.Property(e => e.RecordDate)
-             .HasColumnName("Record_Date")
-             .HasColumnType("datetime");
-
-            entity.Property(e => e.Referer)
-                .HasColumnName("REFERER")
-                .HasMaxLength(100);
-
-            entity.Property(e => e.UserAgent).HasColumnName("USER_AGENT");
+            entity.Property(e => e.PhoneNumber)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("phone_number");
         });
 
         OnModelCreatingPartial(modelBuilder);

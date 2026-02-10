@@ -5,9 +5,10 @@ namespace Services
 {
     public interface IUserService
     {
-        Task<PostUserDTO> AddUser(PostUserDTO user);
+        Task<UserDTO> AddUser(PostUserDTO user);
         Task<IEnumerable<UserDTO>> GetUsers();
         Task<UserDTO> GetUserById(int id);
+        Task<IEnumerable<OrderDTO>> GetUsersOrders(int userId);
         Task<UserDTO> Login(LoginUserDTO loginUser);
         Task UpdateUser(int id, PostUserDTO user);
         Task<bool> UserWithSameEmail(string email,int id=-1);

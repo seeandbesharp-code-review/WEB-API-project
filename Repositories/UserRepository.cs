@@ -14,12 +14,16 @@ namespace Repositories
         }
         public async Task<IEnumerable<User>> GetUsers()
         {
-            return await _apiDbContext.Users.Include(user=>user.Orders).ToListAsync();
+            return await _apiDbContext.Users.ToListAsync();
         }
 
         public async Task<User> GetUserById(int id)
         {
             return await _apiDbContext.Users.FindAsync(id);
+        }
+        public async Task<IEnumerable<Order>> GetUsersOrders(int userId)
+        {
+            return await _apiDbContext.Orders.Include(order=>order.OrderItems).ThenInclude(item=>item.Product).Where(order=>order.UserId== userId).ToListAsync();
         }
 
         public async Task<User> AddUser(User newUser)

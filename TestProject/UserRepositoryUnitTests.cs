@@ -205,5 +205,58 @@ namespace TestProject
 
             mockContext.Verify(x => x.SaveChangesAsync(default), Times.Once);
         }
+        [Fact]
+        public async Task GetUsersOrders_ReturnsCorrectOrders_WhenUserIdExists()
+        {
+            // Arrange
+            var userId = 1;
+
+            var product = new Product { Id = 10, Name = "Smartphone" };
+            var orderItems = new List<OrderItem> { new OrderItem { Id = 100, Product = product } };
+
+            var orders = new List<Order>
+            {
+                new Order { Id = 50, UserId = userId, OrderItems = orderItems }, 
+                new Order { Id = 51, UserId = 2, OrderItems = new List<OrderItem>() } 
+            };
+
+            var mockContext = new Mock<ApiDBContext>();
+            mockContext.Setup(x => x.Orders).ReturnsDbSet(orders);
+
+            var repository = new UserRepository(mockContext.Object);
+
+            // Act
+            var result = await repository.GetUsersOrders(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Single(result); 
+            var order = result.First();
+            Assert.Equal(userId, order.UserId);
+            Assert.Equal("Smartphone", order.OrderItems.First().Product.Name);
+        }
+        [Fact]
+        public async Task GetUsersOrders_ReturnsEmpty_WhenUserHasNoOrders()
+        {
+            // Arrange
+            var userId = 99;
+            var orders = new List<Order>
+            {
+                new Order { Id = 1, UserId = 1 }
+            };
+
+            var mockContext = new Mock<ApiDBContext>();
+            mockContext.Setup(x => x.Orders).ReturnsDbSet(orders);
+
+            var repository = new UserRepository(mockContext.Object);
+
+            // Act
+            var result = await repository.GetUsersOrders(userId);
+
+            // Assert
+            Assert.Empty(result);
+        }
+
+
     }
 }
