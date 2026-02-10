@@ -14,11 +14,11 @@ namespace DTOs
 
      int Quantity,
 
-     string ProductName,
+     string? ProductName,
 
-     string ProductImageUrl,
+     string? ProductImageUrl,
 
-     double ProductPrice
+     double? ProductPrice
 
     );
    

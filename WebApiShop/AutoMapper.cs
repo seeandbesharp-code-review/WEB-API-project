@@ -13,9 +13,10 @@ namespace WebApiShop
             CreateMap<User, UserDTO>().ReverseMap();
             CreateMap<User, LoginUserDTO>().ReverseMap();
             CreateMap<Category, CategoryDTO>().ReverseMap();
-            CreateMap<Product, ProductDTO>()
-               
-                ;
+            CreateMap<Product, ProductDTO>().ReverseMap();
+            CreateMap<Product, PostProductDTO>().ReverseMap();
+
+            ;
         }
     }
 }

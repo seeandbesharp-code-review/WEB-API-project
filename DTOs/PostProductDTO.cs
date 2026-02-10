@@ -6,22 +6,14 @@ using System.Threading.Tasks;
 
 namespace DTOs
 {
-     public record ProductDTO(
+     public record PostProductDTO(
      int Id ,
-
      int CategoryId ,
-
      string Name ,
-
      string Description ,
-
      double Price ,
-
-     string ImageUrl ,
-
-     bool IsAvailable ,
-
-    string CategoryName 
+     string ImageUrl,
+     bool IsAvailable = true
         );
   
 }

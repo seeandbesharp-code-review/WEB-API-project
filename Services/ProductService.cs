@@ -38,8 +38,19 @@ namespace Services
                 numOfPages++;
             pageResponse.HasNextPage = position < numOfPages;
             return pageResponse;
+        }
+        public async Task<ProductDTO> GetProductById(int id)
+        {
+            return _mapper.Map<Product, ProductDTO>(await _productRepository.GetProductById(id));
+        }
+        public async Task<ProductDTO> AddProduct(PostProductDTO product)
+        {
+            return _mapper.Map<Product, ProductDTO>(await _productRepository.AddProduct(_mapper.Map<PostProductDTO, Product>(product)));
+        }
 
-
+        public async Task UpdateProduct(int id, ProductDTO product)
+        {
+            await _productRepository.UpdateProduct(id, _mapper.Map<ProductDTO, Product>(product));
         }
     }
 }

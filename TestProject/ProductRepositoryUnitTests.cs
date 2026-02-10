@@ -1,4 +1,5 @@
 ﻿using Entities;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
 using Repositories;
@@ -108,6 +109,89 @@ namespace TestProject
             Assert.Empty(items);
             Assert.Equal(0, totalCount);
         }
+        [Fact]
+        public async Task GetProductById_ProductExists_ReturnsProduct()
+        {
+            // Arrange
+            var productId = 10;
+            var expectedProduct = new Product { Id = productId, Name = "Gaming Chair", Price = 1200 };
+            var products = new List<Product> { expectedProduct };
 
+            var mockContext = new Mock<ApiDBContext>();
+
+            mockContext.Setup(x => x.Products).ReturnsDbSet(products);
+
+            mockContext.Setup(x => x.Products.FindAsync(productId))
+                       .ReturnsAsync(expectedProduct);
+
+            var repository = new ProductRepository(mockContext.Object);
+
+            // Act
+            var result = await repository.GetProductById(productId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(productId, result.Id);
+        }
+        [Fact]
+        public async Task GetProductById_ProductDoesNotExist_ReturnsNull()
+        {
+            // Arrange
+            var products = new List<Product>
+            {
+                new Product { Id = 1, Name = "Laptop" }
+            };
+
+            var mockContext = new Mock<ApiDBContext>();
+            mockContext.Setup(x => x.Products).ReturnsDbSet(products);
+
+            mockContext.Setup(x => x.Products.FindAsync(99))
+                       .ReturnsAsync((Product)null);
+
+            var repository = new ProductRepository(mockContext.Object);
+
+            // Act
+            var result = await repository.GetProductById(99);
+
+            // Assert
+            Assert.Null(result);
+        }
+        [Fact]
+        public async Task AddProduct_ValidProduct_ReturnsAddedProductAndCallsSave()
+        {
+            // Arrange
+            var mockContext = new Mock<ApiDBContext>();
+            var mockDbSet = new Mock<DbSet<Product>>();
+            mockContext.Setup(x => x.Products).Returns(mockDbSet.Object);
+
+            var repository = new ProductRepository(mockContext.Object);
+            var newProduct = new Product { Id = 4, Name = "Keyboard", Price = 100 };
+
+            // Act
+            var result = await repository.AddProduct(newProduct);
+
+            // Assert
+            mockDbSet.Verify(m => m.AddAsync(It.IsAny<Product>(), default), Times.Once);
+            mockContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
+            Assert.Equal(newProduct.Name, result.Name);
+        }
+        [Fact]
+        public async Task UpdateProduct_ValidProduct_CallsUpdateAndSave()
+        {
+            // Arrange
+            var mockContext = new Mock<ApiDBContext>();
+            var mockDbSet = new Mock<DbSet<Product>>();
+            mockContext.Setup(x => x.Products).Returns(mockDbSet.Object);
+
+            var repository = new ProductRepository(mockContext.Object);
+            var updatedProduct = new Product { Id = 1, Name = "Laptop Pro", Price = 2500 };
+
+            // Act
+            await repository.UpdateProduct(1, updatedProduct);
+
+            // Assert
+            mockContext.Verify(m => m.Products.Update(updatedProduct), Times.Once);
+            mockContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
+        }
     }
 }

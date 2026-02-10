@@ -17,6 +17,10 @@ namespace DTOs
 
      string LastName ,
 
+     string Address,
+
+     string PhoneNumber,
+
      [Required]
      string Password
 

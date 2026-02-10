@@ -112,5 +112,99 @@ namespace TestProject
             Assert.Empty(items);
             Assert.Equal(0, totalCount);
         }
+        [Fact]
+        public async Task GetProductById_ReturnsProduct_WhenIdExists()
+        {
+            // Arrange
+            var category = new Category { Name = "General" };
+            await _dbContext.Categories.AddAsync(category);
+            await _dbContext.SaveChangesAsync();
+
+            var product = new Product
+            {
+                Name = "Test Product",
+                Price = 100,
+                Description = "Test",
+                CategoryId = category.Id
+            };
+            await _dbContext.Products.AddAsync(product);
+            await _dbContext.SaveChangesAsync();
+
+            // Act
+            var result = await _productRepository.GetProductById(product.Id);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(product.Id, result.Id);
+            Assert.Equal("Test Product", result.Name);
+            Assert.Equal(100, result.Price);
+        }
+
+        [Fact]
+        public async Task GetProductById_ReturnsNull_WhenIdDoesNotExist()
+        {
+            // Act
+            var result = await _productRepository.GetProductById(999); // ID שלא קיים
+
+            // Assert
+            Assert.Null(result);
+        }
+        [Fact]
+        public async Task AddProduct_SavesProductToDatabase()
+        {
+            // Arrange
+            // חייבים ליצור קטגוריה אמיתית בגלל ה-Foreign Key
+            var category = new Category { Name = "Hardware" };
+            await _dbContext.Categories.AddAsync(category);
+            await _dbContext.SaveChangesAsync();
+
+            var newProduct = new Product
+            {
+                Name = "New Keyboard",
+                Price = 50,
+                Description = "Mechanical",
+                CategoryId = category.Id // משתמשים ב-Id האמיתי שנוצר
+            };
+
+            // Act
+            var result = await _productRepository.AddProduct(newProduct);
+
+            // Assert
+            Assert.NotEqual(0, result.Id);
+            var productInDb = await _dbContext.Products.FindAsync(result.Id);
+            Assert.NotNull(productInDb);
+        }
+        [Fact]
+        public async Task UpdateProduct_UpdatesExistingProductInDatabase()
+        {
+            // Arrange
+            var category = new Category { Name = "Electronics" };
+            await _dbContext.Categories.AddAsync(category);
+            await _dbContext.SaveChangesAsync();
+
+            var product = new Product { Name = "Old Name", Price = 10, Description = "Old Desc", CategoryId = category.Id };
+            await _dbContext.Products.AddAsync(product);
+            await _dbContext.SaveChangesAsync();
+
+            _dbContext.Entry(product).State = EntityState.Detached;
+
+            var updatedProduct = new Product
+            {
+                Id = product.Id,
+                Name = "New Name",
+                Price = 20,
+                Description = "New Desc",
+                CategoryId = category.Id
+            };
+
+            // Act
+            await _productRepository.UpdateProduct(product.Id, updatedProduct);
+
+            // Assert
+            var productInDb = await _dbContext.Products.FindAsync(product.Id);
+            Assert.NotNull(productInDb);
+            Assert.Equal("New Name", productInDb.Name);
+            Assert.Equal(20, productInDb.Price);
+        }
     }
 }

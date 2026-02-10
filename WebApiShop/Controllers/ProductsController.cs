@@ -26,5 +26,31 @@ namespace WebApiShop.Controllers
                 return Ok(pageResponse);
             return NoContent();
         }
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ProductDTO>> Get(int id)
+        {
+            ProductDTO product = await _productService.GetProductById(id);
+            if (product == null)
+                return NotFound();
+            return Ok(product);
+        }
+
+        // POST api/<UsersController>
+        [HttpPost]
+        public async Task<ActionResult<ProductDTO>> Post([FromBody] PostProductDTO newProduct)
+        {
+            ProductDTO returnedProduct = await _productService.AddProduct(newProduct);
+            if (returnedProduct == null)
+                return BadRequest();
+            return CreatedAtAction(nameof(Get), new { id = returnedProduct.Id }, returnedProduct);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Put(int id, [FromBody] ProductDTO updateProduct)
+        {
+            await _productService.UpdateProduct(id, updateProduct);
+            return NoContent();
+        }
+
     }
 }
