@@ -6,16 +6,13 @@ using System.Threading.Tasks;
 
 namespace DTOs
 {
-    public class PageResponseDTO<T>
-    {
-        public List<T> Data { get; set; }
-        public int TotalItems { get; set; }
-        public int CurrentPage { get; set; }
-        public int PageSize { get; set; }
-        public bool HasPreviousPage { get; set; }
-        public bool HasNextPage { get; set; }
-
-
-
-    }
+    public record PageResponseDTO<T>
+    (
+        List<T> Data ,
+        int TotalItems ,
+        int CurrentPage ,
+        int PageSize ,
+        bool HasPreviousPage ,
+        bool HasNextPage 
+    );
 }

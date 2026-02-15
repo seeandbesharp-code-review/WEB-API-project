@@ -27,16 +27,17 @@ namespace Services
 
             var (items, totalItems) = await _productRepository.GetProducts(position,skip,categoryIds,description,maxPrice,minPrice);
             List<ProductDTO> data = _mapper.Map<List<Product>, List<ProductDTO>>(items);
-            PageResponseDTO<ProductDTO> pageResponse = new();
-            pageResponse.Data = data;
-            pageResponse.TotalItems = totalItems;
-            pageResponse.CurrentPage = position;
-            pageResponse.PageSize = skip;
-            pageResponse.HasPreviousPage = position > 1;
-            int numOfPages=pageResponse.TotalItems/skip;
-            if(pageResponse.TotalItems%skip!=0)
+            int numOfPages = totalItems / skip;
+            if (totalItems % skip != 0)
                 numOfPages++;
-            pageResponse.HasNextPage = position < numOfPages;
+            PageResponseDTO<ProductDTO> pageResponse = new(
+             data,
+            totalItems ,
+            position,
+            skip,
+            position > 1,
+            position < numOfPages
+            );
             return pageResponse;
         }
         public async Task<ProductDTO> GetProductById(int id)
