@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using DTOs;
 using Entities;
+using Microsoft.Extensions.Logging;
 using Repositories;
 using System;
 using System.Collections.Generic;
@@ -15,11 +16,13 @@ namespace Services
         private readonly IOrderRepository _orderRepository;
         private readonly IProductRepository _productRepository;
         private readonly IMapper _mapper;
-        public OrderService(IOrderRepository orderRepository, IProductRepository productRepository, IMapper mapper)
+        private readonly ILogger _logger;
+        public OrderService(IOrderRepository orderRepository, IProductRepository productRepository, IMapper mapper, ILogger<OrderService> logger)
         {
             _orderRepository = orderRepository;
             _productRepository = productRepository;
             _mapper = mapper;
+            _logger = logger;
 
         }
         public async Task<OrderDTO> GetOrderById(int id)
@@ -30,7 +33,8 @@ namespace Services
         public async Task<OrderDTO> AddOrder(OrderDTO order)
         {
             if(await CheckOrderSum(order))
-                return _mapper.Map<Order, OrderDTO>(await _orderRepository.AddOrder(_mapper.Map < OrderDTO, Order > (order)));
+                return _mapper.Map<Order,OrderDTO>(await _orderRepository.AddOrder(_mapper.Map <OrderDTO,Order> (order)));
+            _logger.LogWarning("user id:" + order.UserId + "tried to close order with unmatched sum");
             return null;
         }
 

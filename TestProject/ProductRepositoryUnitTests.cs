@@ -156,42 +156,6 @@ namespace TestProject
             // Assert
             Assert.Null(result);
         }
-        [Fact]
-        public async Task AddProduct_ValidProduct_ReturnsAddedProductAndCallsSave()
-        {
-            // Arrange
-            var mockContext = new Mock<ApiDBContext>();
-            var mockDbSet = new Mock<DbSet<Product>>();
-            mockContext.Setup(x => x.Products).Returns(mockDbSet.Object);
 
-            var repository = new ProductRepository(mockContext.Object);
-            var newProduct = new Product { Id = 4, Name = "Keyboard", Price = 100 };
-
-            // Act
-            var result = await repository.AddProduct(newProduct);
-
-            // Assert
-            mockDbSet.Verify(m => m.AddAsync(It.IsAny<Product>(), default), Times.Once);
-            mockContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
-            Assert.Equal(newProduct.Name, result.Name);
-        }
-        [Fact]
-        public async Task UpdateProduct_ValidProduct_CallsUpdateAndSave()
-        {
-            // Arrange
-            var mockContext = new Mock<ApiDBContext>();
-            var mockDbSet = new Mock<DbSet<Product>>();
-            mockContext.Setup(x => x.Products).Returns(mockDbSet.Object);
-
-            var repository = new ProductRepository(mockContext.Object);
-            var updatedProduct = new Product { Id = 1, Name = "Laptop Pro", Price = 2500 };
-
-            // Act
-            await repository.UpdateProduct(1, updatedProduct);
-
-            // Assert
-            mockContext.Verify(m => m.Products.Update(updatedProduct), Times.Once);
-            mockContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
-        }
     }
 }

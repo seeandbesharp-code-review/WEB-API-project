@@ -70,6 +70,57 @@ namespace TestProject
             Assert.Empty(result);
         }
         [Fact]
+        public async Task GetUserById_ReturnsUser_WhenIdExists()
+        {
+            // Arrange
+            var userId = 1;
+            var users = new List<User>
+            {
+                new User { Id = userId, FirstName = "Israel" },
+                new User { Id = 2, FirstName = "Yossi" }
+            };
+
+            var mockContext = new Mock<ApiDBContext>();
+
+            mockContext.Setup(x => x.Users).ReturnsDbSet(users);
+
+            mockContext.Setup(x => x.Users.FindAsync(userId))
+                       .ReturnsAsync(users.First(u => u.Id == userId));
+
+            var repository = new UserRepository(mockContext.Object);
+
+            // Act
+            var result = await repository.GetUserById(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(userId, result.Id);
+        }
+
+        [Fact]
+        public async Task GetUserById_ReturnsNull_WhenIdDoesNotExist()
+        {
+            // Arrange
+            var users = new List<User>
+            {
+                new User { Id = 1, FirstName = "Israel" }
+            };
+
+            var mockContext = new Mock<ApiDBContext>();
+            mockContext.Setup(x => x.Users).ReturnsDbSet(users);
+
+            mockContext.Setup(x => x.Users.FindAsync(It.IsAny<int>()))
+                       .ReturnsAsync((User)null);
+
+            var repository = new UserRepository(mockContext.Object);
+
+            // Act
+            var result = await repository.GetUserById(999);
+
+            // Assert
+            Assert.Null(result);
+        }
+        [Fact]
         public async Task Login_ReturnsUser_WhenCredentialsAreCorrect()
         {
             // Arrange

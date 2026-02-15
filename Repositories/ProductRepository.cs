@@ -31,19 +31,5 @@ namespace Repositories
         {
             return await _apiDbContext.Products.FindAsync(id);
         }
-
-        public async Task<Product> AddProduct(Product newProduct)
-        {
-            await _apiDbContext.Products.AddAsync(newProduct);
-            await _apiDbContext.SaveChangesAsync();
-            return newProduct;
-        }
-
-        public async Task UpdateProduct(int id, Product updateProduct)
-        {
-            _apiDbContext.Products.Update(updateProduct);
-            await _apiDbContext.SaveChangesAsync();
-        }
-
     }
 }

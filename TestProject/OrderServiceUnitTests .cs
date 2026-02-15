@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using DTOs;
 using Entities;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.EntityFrameworkCore;
 using Repositories;
@@ -16,7 +17,7 @@ namespace TestProject
             // Arrange
             var orderItems = new List<OrderItemDTO>
     {
-        new OrderItemDTO(0, 1, 2, "Product Name", "Description", 50.0)
+        new OrderItemDTO(0, 1, 2)
     };
 
             var orderDto = new OrderDTO(
@@ -40,9 +41,9 @@ namespace TestProject
             mockMapper.Setup(m => m.Map<Order, OrderDTO>(orderEntity)).Returns(orderDto);
 
             mockOrderRepo.Setup(x => x.AddOrder(It.IsAny<Order>())).ReturnsAsync(orderEntity);
+            var mockLogger = new Mock<ILogger<OrderService>>();
 
-            var service = new OrderService(mockOrderRepo.Object, mockProductRepo.Object, mockMapper.Object);
-
+            var service = new OrderService(mockOrderRepo.Object,mockProductRepo.Object,mockMapper.Object,mockLogger.Object);
             // Act
             var result = await service.AddOrder(orderDto);
 
@@ -57,9 +58,9 @@ namespace TestProject
         {
             // Arrange
             var orderItems = new List<OrderItemDTO>
-    {
-        new OrderItemDTO(0, 1, 2, "Product Name", "Description", 50.0)
-    };
+            {
+                new OrderItemDTO(0, 1, 2)
+            };
 
             var orderDto = new OrderDTO(
                 0,
@@ -76,8 +77,9 @@ namespace TestProject
             var mockMapper = new Mock<IMapper>();
 
             mockProductRepo.Setup(x => x.GetProductById(1)).ReturnsAsync(product);
+            var mockLogger = new Mock<ILogger<OrderService>>();
 
-            var service = new OrderService(mockOrderRepo.Object, mockProductRepo.Object, mockMapper.Object);
+            var service = new OrderService(mockOrderRepo.Object, mockProductRepo.Object, mockMapper.Object, mockLogger.Object);
 
             // Act
             var result = await service.AddOrder(orderDto);

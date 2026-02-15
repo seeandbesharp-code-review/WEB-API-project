@@ -220,5 +220,44 @@ namespace TestProject
 
             Assert.DoesNotContain(result, o => o.UserId == user2.Id);
         }
+        [Fact]
+        public async Task GetUserById_ReturnsUser_WhenIdIsCorrect()
+        {
+            // Arrange
+            var user = new User
+            {
+                FirstName = "Test",
+                LastName = "User",
+                Email = "findme@test.com",
+                Password = "123"
+            };
+            await _dbContext.Users.AddAsync(user);
+            await _dbContext.SaveChangesAsync();
+
+            // Act
+            var result = await _userRepository.GetUserById(user.Id);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(user.Id, result.Id);
+            Assert.Equal("findme@test.com", result.Email);
+        }
+
+        [Fact]
+        public async Task GetUserById_ReturnsNull_WhenIdIsIncorrect()
+        {
+            // Arrange
+            var user = new User { FirstName = "Exist", Email = "exist@test.com", Password = "123" };
+            await _dbContext.Users.AddAsync(user);
+            await _dbContext.SaveChangesAsync();
+
+            var nonExistentId = 9999;
+
+            // Act
+            var result = await _userRepository.GetUserById(nonExistentId);
+
+            // Assert
+            Assert.Null(result);
+        }
     }
 }

@@ -12,13 +12,7 @@ namespace DTOs
 
      int ProductId ,
 
-     int Quantity,
-
-     string? ProductName,
-
-     string? ProductImageUrl,
-
-     double? ProductPrice
+     int Quantity
 
     );
    
