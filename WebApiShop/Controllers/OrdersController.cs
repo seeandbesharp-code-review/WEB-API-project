@@ -1,10 +1,7 @@
-﻿using Entities;
+﻿using DTOs;
+using Entities;
 using Microsoft.AspNetCore.Mvc;
 using Services;
-using DTOs;
-using AutoMapper;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace WebApiShop.Controllers
 {
@@ -13,11 +10,12 @@ namespace WebApiShop.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly IOrderService _orderService;
+
         public OrdersController(IOrderService orderService)
         {
             _orderService = orderService;
         }
-        // GET api/<OrdersController>/5
+
         [HttpGet("{id}")]
         public async Task<ActionResult<OrderDTO>> Get(int id)
         {
@@ -27,7 +25,6 @@ namespace WebApiShop.Controllers
             return Ok(order);
         }
 
-        // POST api/<OrdersController>
         [HttpPost]
         public async Task<ActionResult<OrderDTO>> Post([FromBody] OrderDTO newOrder)
         {
@@ -36,6 +33,5 @@ namespace WebApiShop.Controllers
                 return BadRequest();
             return CreatedAtAction(nameof(Get), new { id = newOrder.Id }, newOrder);
         }
-
     }
 }
