@@ -71,15 +71,5 @@ namespace WebApiShop.Controllers
             await _userService.UpdateUser(id, updateUser);
             return NoContent();
        }
-
-        [HttpGet("{id}/orders")]
-        public async Task<ActionResult<IEnumerable<OrderDTO>>> GetUsersOrders(int id)
-        {
-            IEnumerable<OrderDTO> orders = await _userService.GetUsersOrders(id);
-            if (orders.Count() > 0)
-                return Ok(orders);
-            return NoContent();
-
-        }
     }
 }

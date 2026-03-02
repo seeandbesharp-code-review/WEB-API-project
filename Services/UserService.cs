@@ -29,10 +29,6 @@ namespace Services
         {
              return _mapper.Map<User, UserDTO>(await _userRepository.GetUserById(id));
         }
-        public async Task<IEnumerable<OrderDTO>> GetUsersOrders(int userId)
-        {
-            return _mapper.Map<IEnumerable<Order>, IEnumerable<OrderDTO>>(await _userRepository.GetUsersOrders(userId));
-        }
         public async Task<UserDTO> AddUser(PostUserDTO user)
         {
             return _mapper.Map<User,UserDTO >(await _userRepository.AddUser(_mapper.Map<PostUserDTO,User>(user)));

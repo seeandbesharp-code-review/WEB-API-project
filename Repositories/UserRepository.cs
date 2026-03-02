@@ -21,10 +21,6 @@ namespace Repositories
         {
             return await _apiDbContext.Users.FindAsync(id);
         }
-        public async Task<IEnumerable<Order>> GetUsersOrders(int userId)
-        {
-            return await _apiDbContext.Orders.Include(order=>order.OrderItems).ThenInclude(item=>item.Product).Where(order=>order.UserId== userId).ToListAsync();
-        }
 
         public async Task<User> AddUser(User newUser)
         {
