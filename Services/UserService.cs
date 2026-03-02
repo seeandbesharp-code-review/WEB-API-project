@@ -22,26 +22,26 @@ namespace Services
 
         public async Task<IEnumerable<UserDTO>> GetUsers()
         {
-             return _mapper.Map<IEnumerable<User>, IEnumerable<UserDTO>>(await _userRepository.GetUsers());
+            return _mapper.Map<IEnumerable<User>, IEnumerable<UserDTO>>(await _userRepository.GetUsers());
         }
 
         public async Task<UserDTO> GetUserById(int id)
         {
-             return _mapper.Map<User, UserDTO>(await _userRepository.GetUserById(id));
+            return _mapper.Map<User, UserDTO>(await _userRepository.GetUserById(id));
         }
         public async Task<UserDTO> AddUser(PostUserDTO user)
         {
-            return _mapper.Map<User,UserDTO >(await _userRepository.AddUser(_mapper.Map<PostUserDTO,User>(user)));
+            return _mapper.Map<User, UserDTO>(await _userRepository.AddUser(_mapper.Map<PostUserDTO, User>(user)));
         }
 
         public async Task UpdateUser(int id, PostUserDTO user)
         {
             await _userRepository.UpdateUser(id, _mapper.Map<PostUserDTO, User>(user));
         }
-        
+
         public async Task<UserDTO> Login(LoginUserDTO loginUser)
         {
-            return _mapper.Map < User, UserDTO> (await _userRepository.Login(loginUser.Email, loginUser.Password));
+            return _mapper.Map<User, UserDTO>(await _userRepository.Login(loginUser.Email, loginUser.Password));
         }
         public async Task<bool> UserWithSameEmail(string email,int id=-1)
         {
