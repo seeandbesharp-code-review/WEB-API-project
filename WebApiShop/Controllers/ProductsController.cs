@@ -17,60 +17,102 @@ namespace WebApiShop.Controllers
         private readonly IProductService _productService;
         private readonly IDistributedCache _cache;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<ProductsController> _logger;
 
-        public ProductsController(IProductService productService, IDistributedCache cache, IConfiguration configuration)
+
+        public ProductsController(IProductService productService, IDistributedCache cache, IConfiguration configuration, ILogger<ProductsController> logger)
         {
             _productService = productService;
             _cache = cache;
             _configuration = configuration;
+            _logger = logger;
         }
         // GET: api/<CategoriesController>
         [HttpGet]
-        public async Task<ActionResult<PageResponseDTO<ProductDTO>>> Get( [FromQuery] int?[] categoryIds,string? description,int? maxPrice,int? minPrice,int position=1, int skip=8)
+        public async Task<ActionResult<PageResponseDTO<ProductDTO>>> Get([FromQuery] int?[] categoryIds, string? description, int? maxPrice, int? minPrice, int position = 1, int skip = 8)
         {
             string categoryIdsStr = categoryIds != null ? string.Join(",", categoryIds.Where(c => c.HasValue).Select(c => c.Value)) : "";
             string cacheKey = $"products_{categoryIdsStr}_{description ?? ""}_{maxPrice ?? 0}_{minPrice ?? 0}_{position}_{skip}";
-            string cachedResponse = await _cache.GetStringAsync(cacheKey);
-            
-            if (!string.IsNullOrEmpty(cachedResponse))
+
+            try
             {
-                PageResponseDTO<ProductDTO> cachedPageResponse = JsonSerializer.Deserialize<PageResponseDTO<ProductDTO>>(cachedResponse);
-                return Ok(cachedPageResponse);
-            }
-            PageResponseDTO<ProductDTO> pageResponse = await _productService.GetProducts(position,skip,categoryIds, description, maxPrice,minPrice);
-            if (pageResponse.Data.Count() > 0)
-            {
-                string serializedResponse = JsonSerializer.Serialize(pageResponse);
-                var ttlMinutes = _configuration.GetValue<int>("CacheSettings:ProductCacheTTLMinutes");
-                await _cache.SetStringAsync(cacheKey, serializedResponse, new DistributedCacheEntryOptions
+                string cachedResponse = await _cache.GetStringAsync(cacheKey);
+
+                if (!string.IsNullOrEmpty(cachedResponse))
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(ttlMinutes)
-                });
+                    var cachedPageResponse = JsonSerializer.Deserialize<PageResponseDTO<ProductDTO>>(cachedResponse);
+                    return Ok(cachedPageResponse);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Redis GET failed");
+            }
+
+            var pageResponse = await _productService.GetProducts(position, skip, categoryIds, description, maxPrice, minPrice);
+
+            if (pageResponse.Data.Any())
+            {
+                try
+                {
+                    string serializedResponse = JsonSerializer.Serialize(pageResponse);
+                    var ttlMinutes = _configuration.GetValue<int>("CacheSettings:ProductCacheTTLMinutes");
+
+                    await _cache.SetStringAsync(cacheKey, serializedResponse, new DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(ttlMinutes)
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Redis SET failed");
+                }
+
                 return Ok(pageResponse);
             }
+
             return NoContent();
         }
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductDTO>> Get(int id)
         {
             string cacheKey = $"product_{id}";
-            string cachedProduct = await _cache.GetStringAsync(cacheKey);
-            if (!string.IsNullOrEmpty(cachedProduct))
+            ProductDTO product = null;
+
+            try
             {
-                ProductDTO redisProduct = JsonSerializer.Deserialize<ProductDTO>(cachedProduct);
-                return Ok(redisProduct);
+                string cachedProduct = await _cache.GetStringAsync(cacheKey);
+                if (!string.IsNullOrEmpty(cachedProduct))
+                {
+                    ProductDTO redisProduct = JsonSerializer.Deserialize<ProductDTO>(cachedProduct);
+                    return Ok(redisProduct);
+                }
             }
-            ProductDTO product = await _productService.GetProductById(id);
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Redis GET failed");
+            }
+
+            product = await _productService.GetProductById(id);
             if (product == null)
                 return NotFound();
-            string serializedProduct = JsonSerializer.Serialize(product);
-            var ttlMinutes = _configuration.GetValue<int>("CacheSettings:ProductCacheTTLMinutes");
-            await _cache.SetStringAsync(cacheKey, serializedProduct, new DistributedCacheEntryOptions
+
+            try
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(ttlMinutes)
-            });
+                string serializedProduct = JsonSerializer.Serialize(product);
+                var ttlMinutes = _configuration.GetValue<int>("CacheSettings:ProductCacheTTLMinutes");
+
+                await _cache.SetStringAsync(cacheKey, serializedProduct, new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(ttlMinutes)
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Redis SET failed");
+            }
+
             return Ok(product);
         }
-
     }
 }
