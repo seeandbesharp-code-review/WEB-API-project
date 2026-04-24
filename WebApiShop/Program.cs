@@ -22,6 +22,11 @@ builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IRatingRepository, RatingRepository>();
 builder.Services.AddDbContext<ApiDBContext>
     (options => options.UseSqlServer(builder.Configuration.GetConnectionString("Home")));
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+});
+// Add services to the container.
 builder.Host.UseNLog();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -34,10 +39,23 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/openapi/v1.json", "My API V1");
     });
 }
+// Configure the HTTP request pipeline.
+
 app.UseHttpsRedirection();
+
 app.UseErrorHandling();
+
 app.UseRating();
+
 app.UseStaticFiles();
+
 app.UseAuthorization();
+
 app.MapControllers();
+
 app.Run();
+
+
+
+
+
