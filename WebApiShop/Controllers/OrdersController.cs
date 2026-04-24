@@ -30,7 +30,7 @@ namespace WebApiShop.Controllers
         {
             newOrder = await _orderService.AddOrder(newOrder);
             if (newOrder == null)
-                return BadRequest();
+                return BadRequest("order with unmatched sum");
             return CreatedAtAction(nameof(Get), new { id = newOrder.Id }, newOrder);
         }
     }

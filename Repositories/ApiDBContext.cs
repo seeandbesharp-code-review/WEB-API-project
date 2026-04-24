@@ -122,9 +122,6 @@ public partial class ApiDBContext : DbContext
         modelBuilder.Entity<User>(entity =>
         {
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Address)
-                .IsUnicode(false)
-                .HasColumnName("address");
             entity.Property(e => e.Email)
                 .IsRequired()
                 .IsUnicode(false)
@@ -140,10 +137,6 @@ public partial class ApiDBContext : DbContext
                 .IsRequired()
                 .IsUnicode(false)
                 .HasColumnName("password");
-            entity.Property(e => e.PhoneNumber)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("phone_number");
         });
 
         OnModelCreatingPartial(modelBuilder);

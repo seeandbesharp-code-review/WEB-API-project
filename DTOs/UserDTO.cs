@@ -9,10 +9,6 @@
 
      string LastName ,
 
-     string Address ,
-
-     string PhoneNumber ,
-
      bool IsAdmin,
 
      ICollection<OrderDTO> Orders 

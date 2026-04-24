@@ -23,7 +23,8 @@ async function updateUser() {
             body: JSON.stringify(user)
         })
         if (!response.ok) {
-            throw Error("Failed to update profile. Please try again.")
+            responseText = await response.text()
+            throw Error(responseText)
         }
         saveUserInSession(user)
         alert("Profile updated successfully!")

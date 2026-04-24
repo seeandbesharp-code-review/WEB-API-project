@@ -39,7 +39,8 @@ async function addUser() {
         })
         
         if (!response.ok) {
-            throw Error("Failed to create account. Please try again")
+            responseText=await response.text()
+            throw Error(responseText)
         }
         const data = await response.json()
         alert("Account created successfully!")
