@@ -32,6 +32,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
 });
+
 // Add services to the container.
 builder.Host.UseNLog();
 builder.Services.AddControllers();
