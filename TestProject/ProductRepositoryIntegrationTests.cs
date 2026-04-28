@@ -149,6 +149,31 @@ namespace TestProject
             // Assert
             Assert.Null(result);
         }
-        
+
+        [Fact]
+        public async Task AddProduct_SavesProductToDatabase()
+        {
+            // Arrange
+            var category = new Category { Name = "Hardware" };
+            await _dbContext.Categories.AddAsync(category);
+            await _dbContext.SaveChangesAsync();
+
+            var newProduct = new Product
+            {
+                Name = "New Keyboard",
+                Price = 50,
+                Description = "Mechanical",
+                CategoryId = category.Id 
+            };
+
+            // Act
+            var result = await _productRepository.AddProduct(newProduct);
+
+            // Assert
+            Assert.NotEqual(0, result.Id);
+            var productInDb = await _dbContext.Products.FindAsync(result.Id);
+            Assert.NotNull(productInDb);
+        }
+
     }
 }

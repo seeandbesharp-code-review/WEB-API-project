@@ -114,5 +114,14 @@ namespace WebApiShop.Controllers
 
             return Ok(product);
         }
+
+        [HttpPost]
+        public async Task<ActionResult<ProductDTO>> Post([FromBody] PostProductDTO newProduct)
+        {
+            ProductDTO returnedProduct = await _productService.AddProduct(newProduct);
+            if (returnedProduct == null)
+                return BadRequest();
+            return CreatedAtAction(nameof(Get), new { id = returnedProduct.Id }, returnedProduct);
+        }
     }
 }

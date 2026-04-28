@@ -31,5 +31,13 @@ namespace Repositories
         {
             return await _apiDbContext.Products.FindAsync(id);
         }
+
+        public async Task<Product> AddProduct(Product newProduct)
+        {
+            await _apiDbContext.Products.AddAsync(newProduct);
+            await _apiDbContext.SaveChangesAsync();
+            return newProduct;
+        }
+
     }
 }

@@ -10,6 +10,7 @@ namespace Services
         private readonly IProductRepository _productRepository;
         private readonly IMapper _mapper;
 
+
         public ProductService(IProductRepository productRepository, IMapper mapper)
         {
             _productRepository = productRepository;
@@ -38,5 +39,11 @@ namespace Services
         {
             return _mapper.Map<Product, ProductDTO>(await _productRepository.GetProductById(id));
         }
+
+        public async Task<ProductDTO> AddProduct(PostProductDTO product)
+        {
+            return _mapper.Map<Product, ProductDTO>(await _productRepository.AddProduct(_mapper.Map<PostProductDTO, Product>(product)));
+        }
+
     }
 }
