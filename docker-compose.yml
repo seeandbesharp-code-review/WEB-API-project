@@ -1,6 +1,20 @@
 version: '3.8'
 
 services:
+  # שירות מסד הנתונים
+  sqlserver:
+    image: rapidfort/microsoft-sql-server-2019-ib:latest
+    container_name: webapishop-ai-sqlserver-1
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong!Passw0rd
+      - MSSQL_PID=Express
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+  # שירות Redis
   redis:
     image: redis:latest
     command: redis-server --requirepass atara57769
@@ -9,5 +23,17 @@ services:
     volumes:
       - redis_data:/data
 
+  webapi:
+    build: .
+    ports:
+      - "5000:8080" 
+    depends_on:
+      - sqlserver
+      - redis
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=ApiDB;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True
+      - ConnectionStrings__Redis=redis:6379,password=atara57769
+
 volumes:
   redis_data:
+  sqlserver_data:

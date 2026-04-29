@@ -1,5 +1,6 @@
 ﻿using DTOs;
 using Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
@@ -74,7 +75,7 @@ namespace WebApiShop.Controllers
             return Ok(product);
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<ProductDTO>> Post([FromBody] PostProductDTO newProduct)
         {

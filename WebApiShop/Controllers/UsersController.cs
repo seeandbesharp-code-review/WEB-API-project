@@ -1,5 +1,6 @@
 ﻿using DTOs;
 using Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
 
@@ -19,6 +20,7 @@ namespace WebApiShop.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<UserDTO>>> Get()
         {
             IEnumerable<UserDTO> users = await _userService.GetUsers();
@@ -43,24 +45,50 @@ namespace WebApiShop.Controllers
         {
             if (!await _userService.UserWithSameEmail(newUser.Email))
                 return BadRequest("The email already exists. Please try again.");
+
             if (!_userService.IsPasswordStrong(newUser.Password))
                 return BadRequest("The password is too weak. Please try again.");
-            UserDTO returnedUser = await _userService.AddUser(newUser);
-            if (returnedUser == null)
+
+            var result = await _userService.AddUser(newUser);
+
+            if (result == null)
                 return BadRequest();
-            return CreatedAtAction(nameof(Get), new { id = returnedUser.Id }, returnedUser);
+
+            Response.Cookies.Append("token", result.Token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            });
+
+            return CreatedAtAction(nameof(Get), new { id = result.User.Id }, result.User);
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<UserDTO>> Login([FromBody] LoginUserDTO loginUser)
         {
-            UserDTO user = await _userService.Login(loginUser);
-            if (user == null)
-                return Unauthorized();
-            _logger.LogInformation($"login attempted id:{user.Id} email:{user.Email} first name:{user.FirstName} last name:{user.LastName}");
-            return Ok(user);
-        }
+            var result = await _userService.Login(loginUser);
 
+            if (result == null)
+                return Unauthorized();
+
+            Response.Cookies.Append("token", result.Token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            });
+
+            _logger.LogInformation(
+                $"login attempted id:{result.User.Id} email:{result.User.Email} " +
+                $"first name:{result.User.FirstName} last name:{result.User.LastName}"
+            );
+
+            return Ok(result.User);
+        }
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] PostUserDTO updateUser)
         {
