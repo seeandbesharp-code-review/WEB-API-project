@@ -1,19 +1,4 @@
 services:
-  server:
-    build:
-      context: .
-      target: final
-    ports:
-      - "5000:8080" 
-    depends_on:
-      sqlserver:
-        condition: service_healthy 
-      redis:
-        condition: service_started
-    environment:
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=ApiDB;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True
-      - ConnectionStrings__Redis=redis:6379,password=atara57769
-
   sqlserver:
     image: rapidfort/microsoft-sql-server-2019-ib:latest
     container_name: webapishop-ai-sqlserver-1
@@ -38,6 +23,22 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+  server:
+    build:
+      context: .
+      target: final
+    ports:
+      - "5000:8080" 
+    depends_on:
+      sqlserver:
+        condition: service_healthy 
+      redis:
+        condition: service_started
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=ApiDB;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True
+      - ConnectionStrings__Redis=redis:6379,password=atara57769
+
+  
 
 volumes:
   redis_data:
