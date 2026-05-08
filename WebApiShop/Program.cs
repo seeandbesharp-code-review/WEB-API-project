@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -79,12 +79,13 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
-        RateLimitPartition.GetFixedWindowLimiter(
+        RateLimitPartition.GetSlidingWindowLimiter(
             partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "global",
-            factory: _ => new FixedWindowRateLimiterOptions
+            factory: _ => new SlidingWindowRateLimiterOptions
             {
-                PermitLimit = 100,
+                PermitLimit = 2,
                 Window = TimeSpan.FromSeconds(1),
+                SegmentsPerWindow = 4,
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0
             }));
