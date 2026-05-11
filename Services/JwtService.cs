@@ -1,4 +1,5 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Entities;
@@ -16,9 +17,9 @@ public class JwtService : IJwtService
 
     public string GenerateToken(User user)
     {
-        var key = _config["Jwt:Key"];
-        var issuer = _config["Jwt:Issuer"];
-        var audience = _config["Jwt:Audience"];
+        var key = _config["Jwt:Key"] ?? throw new InvalidOperationException("JWT key is not configured.");
+        var issuer = _config["Jwt:Issuer"] ?? throw new InvalidOperationException("JWT issuer is not configured.");
+        var audience = _config["Jwt:Audience"] ?? throw new InvalidOperationException("JWT audience is not configured.");
 
         var claims = new[]
         {
