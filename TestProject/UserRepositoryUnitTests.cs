@@ -1,7 +1,8 @@
-﻿using Entities;
+using Entities;
 using Moq;
 using Moq.EntityFrameworkCore;
 using Repositories;
+using Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace TestProject
 {
     public class UserRepositoryUnitTests
     {
+        private readonly IPasswordService _passwordService = new PasswordService();
         [Fact]
         public async Task GetUsers_ReturnsAllUsersWithOrders()
         {
@@ -121,15 +123,15 @@ namespace TestProject
             Assert.Null(result);
         }
         [Fact]
-        public async Task Login_ReturnsUser_WhenCredentialsAreCorrect()
+        public async Task GetUserByEmail_ReturnsUser_WhenEmailExists()
         {
             // Arrange
             var email = "test@example.com";
-            var password = "password123";
+            var hashedPassword = _passwordService.HashPassword("password123");
             var users = new List<User>
             {
-                new User { Id = 1, Email = email, Password = password, FirstName = "John" },
-                new User { Id = 2, Email = "other@test.com", Password = "wrong" }
+                new User { Id = 1, Email = email, Password = hashedPassword, FirstName = "John" },
+                new User { Id = 2, Email = "other@test.com", Password = _passwordService.HashPassword("other") }
             };
 
             var mockContext = new Mock<ApiDBContext>();
@@ -138,20 +140,21 @@ namespace TestProject
             var repository = new UserRepository(mockContext.Object);
 
             // Act
-            var result = await repository.Login(email, password);
+            var result = await repository.GetUserByEmail(email);
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal(email, result.Email);
+            Assert.True(_passwordService.VerifyPassword("password123", result.Password));
         }
 
         [Fact]
-        public async Task Login_ReturnsNull_WhenCredentialsAreWrong()
+        public async Task GetUserByEmail_ReturnsNull_WhenEmailDoesNotExist()
         {
             // Arrange
             var users = new List<User>
             {
-                new User { Id = 1, Email = "test@test.com", Password = "correct" }
+                new User { Id = 1, Email = "test@test.com", Password = _passwordService.HashPassword("correct") }
             };
 
             var mockContext = new Mock<ApiDBContext>();
@@ -160,7 +163,7 @@ namespace TestProject
             var repository = new UserRepository(mockContext.Object);
 
             // Act
-            var result = await repository.Login("test@test.com", "wrong_password");
+            var result = await repository.GetUserByEmail("nonexistent@test.com");
 
             // Assert
             Assert.Null(result);

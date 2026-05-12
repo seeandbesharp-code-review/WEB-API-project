@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using DTOs;
 using Entities;
 using Repositories;
@@ -34,7 +34,10 @@ namespace Services
 
         public async Task<AuthResultDTO> AddUser(PostUserDTO user)
         {
-            var createdUser = await _userRepository.AddUser(_mapper.Map<PostUserDTO, User>(user));
+            var userEntity = _mapper.Map<PostUserDTO, User>(user);
+            userEntity.Password = _passwordService.HashPassword(user.Password);
+
+            var createdUser = await _userRepository.AddUser(userEntity);
 
             var userDto = _mapper.Map<User, UserDTO>(createdUser);
 
@@ -45,12 +48,17 @@ namespace Services
 
         public async Task UpdateUser(int id, PostUserDTO user)
         {
-            await _userRepository.UpdateUser(id, _mapper.Map<PostUserDTO, User>(user));
+            var userEntity = _mapper.Map<PostUserDTO, User>(user);
+            userEntity.Password = _passwordService.HashPassword(user.Password);
+            await _userRepository.UpdateUser(id, userEntity);
         }
 
         public async Task<AuthResultDTO> Login(LoginUserDTO loginUser)
         {
-            var userEntity = await _userRepository.Login(loginUser.Email, loginUser.Password);
+            var userEntity = await _userRepository.GetUserByEmail(loginUser.Email);
+
+            if (userEntity == null || !_passwordService.VerifyPassword(loginUser.Password, userEntity.Password))
+                return null;
 
             var userDto = _mapper.Map<User, UserDTO>(userEntity);
 

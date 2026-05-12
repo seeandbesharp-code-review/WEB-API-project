@@ -1,4 +1,4 @@
-﻿using Entities;
+using Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
@@ -35,9 +35,9 @@ namespace Repositories
             await _apiDbContext.SaveChangesAsync();
         }
 
-        public async Task<User> Login(string email,string password)
+        public async Task<User> GetUserByEmail(string email)
         {
-            return await _apiDbContext.Users.Include(user=>user.Orders).FirstOrDefaultAsync(user => user.Email == email && user.Password == password);
+            return await _apiDbContext.Users.Include(user => user.Orders).FirstOrDefaultAsync(user => user.Email == email);
         }
 
         public async Task<bool> UserWithSameEmail(string email,int id)

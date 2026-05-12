@@ -1,6 +1,7 @@
-﻿using Entities;
+using Entities;
 using Microsoft.EntityFrameworkCore;
 using Repositories;
+using Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,7 @@ namespace TestProject
         private readonly DatabaseFixture _fixture;
         private readonly ApiDBContext _dbContext;
         private readonly UserRepository _userRepository;
+        private readonly IPasswordService _passwordService = new PasswordService();
 
         public UserRepositoryIntegrationTests()
         {
@@ -28,15 +30,16 @@ namespace TestProject
         }
 
         [Fact]
-        public async Task Login_ReturnsNull_WhenCredentialsAreIncorrect()
+        public async Task GetUserByEmail_ReturnsNull_WhenEmailDoesNotExist()
         {
             // Arrange
-            var user = new User { FirstName = "RealUser", Email = "real@test.com", Password = "CorrectPassword" };
+            var hashedPassword = _passwordService.HashPassword("CorrectPassword");
+            var user = new User { FirstName = "RealUser", Email = "real@test.com", Password = hashedPassword };
             await _dbContext.Users.AddAsync(user);
             await _dbContext.SaveChangesAsync();
 
             // Act
-            var result = await _userRepository.Login("real@test.com", "WrongPassword123");
+            var result = await _userRepository.GetUserByEmail("nonexistent@test.com");
 
             // Assert
             Assert.Null(result);
@@ -75,19 +78,21 @@ namespace TestProject
         }
 
         [Fact]
-        public async Task Login_ReturnsCorrectUser_WhenCredentialsMatch()
+        public async Task GetUserByEmail_ReturnsCorrectUser_WhenEmailMatches()
         {
             // Arrange
-            var user = new User { FirstName = "LoginTest", Email = "login@test.com", Password = "SecretPassword" };
+            var hashedPassword = _passwordService.HashPassword("SecretPassword");
+            var user = new User { FirstName = "LoginTest", Email = "login@test.com", Password = hashedPassword };
             await _dbContext.Users.AddAsync(user);
             await _dbContext.SaveChangesAsync();
 
             // Act
-            var result = await _userRepository.Login("login@test.com", "SecretPassword");
+            var result = await _userRepository.GetUserByEmail("login@test.com");
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal("LoginTest", result.FirstName);
+            Assert.True(_passwordService.VerifyPassword("SecretPassword", result.Password));
         }
 
         [Fact]
